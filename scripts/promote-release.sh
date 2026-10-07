@@ -35,12 +35,13 @@ unzip -tq "$promote_dir/input.zip"
 unzip -q "$promote_dir/input.zip" -d "$promote_dir/input"
 printf '%s  %s\n' "$original_checksum" "$promote_dir/input/$archive_name" | sha256sum -c -
 
-tar --no-same-owner -xJf "$promote_dir/input/$archive_name" -C "$promote_dir/staging"
+tar --same-permissions --no-same-owner -xJf "$promote_dir/input/$archive_name" -C "$promote_dir/staging"
 mv "$promote_dir/staging/$source_tree" "$promote_dir/staging/$tool_tree"
 python3 scripts/validate.py tree "$promote_dir/staging/$tool_tree" | tee logs/release-tree-validation.json
 
 tar --sort=name --owner=0 --group=0 --numeric-owner -C "$promote_dir/staging" -cf - "$tool_tree" | \
     xz -T4 -6 > "output/$archive_name"
+sha256sum "output/$archive_name" | tee logs/release-checksum.txt
 printf '%s  %s\n' "$release_checksum" "output/$archive_name" | sha256sum -c -
 test "$(stat -c %s "output/$archive_name")" = "$release_size"
 xz --test "output/$archive_name"
