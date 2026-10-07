@@ -13,14 +13,14 @@ Download **Proton-11-ARM64-MappingFix.tar.xz** and its checksum from [Releases](
 | Valve Wine base | `dc26e61847081a1b5cb0733dc30feba6ee575482` |
 | Build target | `--target-arch=arm64` |
 | SDK | Valve Steam Runtime 4 ARM64 LLVM, `4.0.20260331.220802-2` |
-| Archive size | 349,301,768 bytes (333.12 MiB) |
+| Archive size | See the release asset and release notes |
 | Archive root | `Proton 11 ARM64 MappingFix/` |
 | Validation | 127 native ELF files are AArch64; layout, launcher permissions and XZ integrity passed |
 
 SHA-256:
 
 ```text
-bb5ab7257ce0eddffa031b50acc373989682243b07b0abff418df8486c28e341
+d0ad2c1c8816a2272ef6391810da3a82c39df4f687accedb412f023f2e217ae6
 ```
 
 The archive contains the complete Proton redistributable, including its launcher, manifests, ARM64 Wine, FEX integration and Windows compatibility libraries. Windows PE modules use the architectures required by the ARM64 Proton stack.
@@ -80,5 +80,7 @@ The **Build Proton ARM64 MappingFix** workflow runs the same stages on `ubuntu-2
 The optional x64 thread-churn test warms up with 2,048 thread exits, then attempts 64,000 more exits while sampling `/proc/<wine-pid>/maps`. The original test attempt timed out without mapping measurements. Runtime mapping stability and Android/Fate gameplay remain unverified. The optional runtime workflow reports an unavailable test as a failed verification, rather than a pass.
 
 Start **Verify ARM64EC thread cleanup** manually with the run ID of a completed build from this repository. Results and stderr are uploaded as runtime evidence.
+
+The release contains all 8,836 entries from the complete compiled output. Every file payload, permission, timestamp and link is compared with the original build archive before publication. This package replaces the earlier incomplete local repack.
 
 The build recipe is pinned; a later rebuild has fresh timestamps and may have a different archive checksum. `build-info.json` records the provenance and checksum of the released binary. The release retains the original upstream redistributable license files.

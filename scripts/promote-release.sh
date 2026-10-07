@@ -12,7 +12,7 @@ original = data['original_build']
 release = data['release']
 for value in (original['repository'], original['artifact_id'], original['artifact_zip_sha256'],
               original['archive_sha256'], original['archive_root'], data['archive_name'],
-              data['archive_root'], release['sha256'], release['size_bytes']):
+              data['archive_root'], release['sha256'], release['size_bytes'] or ''):
     print(value)
 PY
 )
@@ -42,8 +42,13 @@ python3 scripts/validate.py tree "$promote_dir/staging/$tool_tree" | tee logs/re
 tar --sort=name --owner=0 --group=0 --numeric-owner -C "$promote_dir/staging" -cf - "$tool_tree" | \
     xz -T4 -6 > "output/$archive_name"
 sha256sum "output/$archive_name" | tee logs/release-checksum.txt
+stat -c '%n %s bytes' "output/$archive_name" | tee logs/release-size.txt
+python3 scripts/compare-archives.py "$promote_dir/input/$archive_name" "output/$archive_name" | \
+    tee logs/release-payload-comparison.json
 printf '%s  %s\n' "$release_checksum" "output/$archive_name" | sha256sum -c -
-test "$(stat -c %s "output/$archive_name")" = "$release_size"
+if [[ -n $release_size ]]; then
+    test "$(stat -c %s "output/$archive_name")" = "$release_size"
+fi
 xz --test "output/$archive_name"
 python3 scripts/validate.py archive "output/$archive_name" | tee logs/release-archive-validation.json
 tar -tJf "output/$archive_name" > logs/release-archive-contents.txt

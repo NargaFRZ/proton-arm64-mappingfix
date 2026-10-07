@@ -32,12 +32,22 @@ jobs:
         run: |
           set -euo pipefail
           release_tag=$(python3 -c 'import json; print(json.load(open("build-info.json"))["release"]["tag"])')
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          info = json.loads(Path('build-info.json').read_text())
+          size = Path('output', info['archive_name']).stat().st_size
+          notes = Path('docs', 'release-' + info['release']['tag'] + '.md').read_text()
+          notes = notes.replace('{{ARCHIVE_SIZE_BYTES}}', f'{size:,}')
+          notes = notes.replace('{{ARCHIVE_SIZE_MIB}}', f'{size / 1024 ** 2:.2f}')
+          Path('logs/release-notes.md').write_text(notes)
+          PY
           gh release create "$release_tag" \
             output/Proton-11-ARM64-MappingFix.tar.xz \
             output/Proton-11-ARM64-MappingFix.tar.xz.sha256 \
             --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
             --title "Proton 11 ARM64 MappingFix" \
-            --notes-file "docs/release-$release_tag.md" --latest
+            --notes-file logs/release-notes.md --latest
       - name: Retain publication validation logs
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

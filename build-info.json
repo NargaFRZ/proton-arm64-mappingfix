@@ -11,11 +11,12 @@
   "patched_virtual_c_sha256": "477a0ec19e7afc24e4fcb655688f1bab9976d7767610095b064b346c77921455",
   "release": {
     "tag": "v11.0-2c-mappingfix.1",
-    "sha256": "bb5ab7257ce0eddffa031b50acc373989682243b07b0abff418df8486c28e341",
-    "size_bytes": 349301768,
+    "sha256": "d0ad2c1c8816a2272ef6391810da3a82c39df4f687accedb412f023f2e217ae6",
+    "size_bytes": null,
     "native_elf_arch": "AArch64",
     "native_elf_count": 127,
-    "runtime_thread_test": "unavailable: timed out without mapping measurements"
+    "runtime_thread_test": "unavailable: timed out without mapping measurements",
+    "redistributable_entries": 8836
   },
   "original_build": {
     "repository": "NargaFRZ/ci-cd-final-project",
