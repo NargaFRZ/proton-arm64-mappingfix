@@ -1,0 +1,47 @@
+name: Publish verified MappingFix release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/publish.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: proton-arm64-mappingfix-release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      actions: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Recover and verify the compiled ARM64 release
+        run: bash scripts/promote-release.sh
+      - name: Create release and upload archive and checksum
+        run: |
+          set -euo pipefail
+          release_tag=$(python3 -c 'import json; print(json.load(open("build-info.json"))["release"]["tag"])')
+          gh release create "$release_tag" \
+            output/Proton-11-ARM64-MappingFix.tar.xz \
+            output/Proton-11-ARM64-MappingFix.tar.xz.sha256 \
+            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+            --title "Proton 11 ARM64 MappingFix" \
+            --notes-file "docs/release-$release_tag.md" --latest
+      - name: Retain publication validation logs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: MappingFix-release-validation
+          path: logs/
+          if-no-files-found: ignore
+          retention-days: 30
