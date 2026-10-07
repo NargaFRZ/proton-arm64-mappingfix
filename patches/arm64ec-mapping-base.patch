@@ -1,0 +1,16 @@
+diff --git a/dlls/ntdll/unix/virtual.c b/dlls/ntdll/unix/virtual.c
+index d5b9341..5822f95 100644
+--- a/dlls/ntdll/unix/virtual.c
++++ b/dlls/ntdll/unix/virtual.c
+@@ -4382,8 +4382,10 @@ void virtual_free_teb( TEB *teb )
+ #ifdef __aarch64__
+     if (teb->ChpeV2CpuAreaInfo)
+     {
++        void *base = (char *)teb->ChpeV2CpuAreaInfo - kernel_stack_guard_size;
+         size = 0;
+-        NtFreeVirtualMemory( GetCurrentProcess(), (void **)&teb->ChpeV2CpuAreaInfo, &size, MEM_RELEASE );
++        NtFreeVirtualMemory( GetCurrentProcess(), &base, &size, MEM_RELEASE );
++        teb->ChpeV2CpuAreaInfo = NULL;
+     }
+ #endif
+     if (thread_data->kernel_stack)
