@@ -13,7 +13,7 @@ Download **Proton-11-ARM64-MappingFix.tar.xz** and its checksum from [Releases](
 | Valve Wine base | `dc26e61847081a1b5cb0733dc30feba6ee575482` |
 | Build target | `--target-arch=arm64` |
 | SDK | Valve Steam Runtime 4 ARM64 LLVM, `4.0.20260331.220802-2` |
-| Archive size | See the release asset and release notes |
+| Archive size | 335.11 MiB (351,383,864 bytes) |
 | Archive root | `Proton 11 ARM64 MappingFix/` |
 | Validation | 127 native ELF files are AArch64; layout, launcher permissions and XZ integrity passed |
 

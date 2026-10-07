@@ -12,11 +12,13 @@
   "release": {
     "tag": "v11.0-2c-mappingfix.1",
     "sha256": "d0ad2c1c8816a2272ef6391810da3a82c39df4f687accedb412f023f2e217ae6",
-    "size_bytes": null,
+    "size_bytes": 351383864,
     "native_elf_arch": "AArch64",
     "native_elf_count": 127,
     "runtime_thread_test": "unavailable: timed out without mapping measurements",
-    "redistributable_entries": 8836
+    "redistributable_entries": 8836,
+    "publication_run_id": 37584064410,
+    "publication_commit": "0cd73fedf37d09d4c46b6894dcea6f7e60c796fa"
   },
   "original_build": {
     "repository": "NargaFRZ/ci-cd-final-project",
