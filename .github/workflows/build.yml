@@ -1,0 +1,54 @@
+name: Build Proton ARM64 MappingFix
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: proton-arm64-mappingfix-build
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Prepare native ARM64 runner
+        run: |
+          set -euo pipefail
+          test "$(uname -m)" = aarch64
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
+          sudo docker image prune -af
+          sudo apt-get update -qq
+          sudo apt-get install -y make git python3 rsync file binutils xz-utils
+          docker version
+          df -h .
+      - name: Fetch pinned sources and apply mapping fix
+        run: bash scripts/build.sh sources
+      - name: Configure Valve ARM64 SDK
+        run: bash scripts/build.sh configure
+      - name: Compile full Proton redistributable
+        run: bash scripts/build.sh compile
+      - name: Package and validate redistributable
+        run: bash scripts/build.sh package
+      - name: Upload validated archive and checksum
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: Proton-11-ARM64-MappingFix
+          path: |
+            output/Proton-11-ARM64-MappingFix.tar.xz
+            output/Proton-11-ARM64-MappingFix.tar.xz.sha256
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
+      - name: Upload build evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: Proton-11-ARM64-MappingFix-build-evidence
+          path: logs/
+          if-no-files-found: ignore
+          retention-days: 30

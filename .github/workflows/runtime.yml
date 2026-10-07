@@ -1,0 +1,59 @@
+name: Verify ARM64EC thread cleanup
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_run_id:
+        description: Completed build workflow run ID from this repository
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  runtime:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Download and validate compiled archive
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BUILD_RUN_ID: ${{ inputs.build_run_id }}
+        run: |
+          set -euo pipefail
+          test "$(uname -m)" = aarch64
+          [[ "$BUILD_RUN_ID" =~ ^[0-9]+$ ]]
+          mkdir -p output logs
+          gh run download "$BUILD_RUN_ID" --repo "$GITHUB_REPOSITORY" \
+            --name Proton-11-ARM64-MappingFix --dir output
+          (cd output && sha256sum -c Proton-11-ARM64-MappingFix.tar.xz.sha256)
+          python3 scripts/validate.py archive output/Proton-11-ARM64-MappingFix.tar.xz
+          tar -xJf output/Proton-11-ARM64-MappingFix.tar.xz -C output
+          python3 scripts/validate.py tree "output/Proton 11 ARM64 MappingFix"
+      - name: Compile and run x64 thread stress test
+        run: |
+          set -euo pipefail
+          sdk=registry.gitlab.steamos.cloud/proton/steamrt4/sdk/arm64-llvm:4.0.20260331.220802-2
+          docker pull "$sdk"
+          docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:$PWD" -w "$PWD" \
+            --entrypoint /bin/bash "$sdk" -c '
+              set -euo pipefail
+              export PATH="$PWD/output/Proton 11 ARM64 MappingFix/files/bin-arm64:/opt/llvm-mingw/bin:$PATH"
+              export WINESERVER="$PWD/output/Proton 11 ARM64 MappingFix/files/bin-arm64/wineserver"
+              export WINEDLLPATH="$PWD/output/Proton 11 ARM64 MappingFix/files/lib/wine"
+              export FEX_APP_CONFIG_LOCATION="$PWD/output/Proton 11 ARM64 MappingFix/files/share/fex-emu"
+              /opt/llvm-mingw/bin/x86_64-w64-mingw32-gcc -O2 scripts/thread-churn.c -o logs/thread-churn.exe
+              python3 scripts/runtime-check.py
+            ' 2>&1 | tee logs/thread-churn.log
+          python3 -c 'import json; r=json.load(open("logs/thread-churn-result.json")); assert r["status"] == "passed", r'
+      - name: Upload runtime evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: Proton-11-ARM64-MappingFix-runtime-evidence
+          path: logs/
+          if-no-files-found: error
+          retention-days: 30

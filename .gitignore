@@ -1,0 +1,10 @@
+/proton-source/
+/proton-build/
+/output/
+/logs/
+/thread-test-prefix/
+/.promotion/
+__pycache__/
+*.pyc
+*.tar.xz
+*.exe
